@@ -20,7 +20,7 @@ def listen_for_messages(client, username):
         # else:
         #     print(f"The message send from client {username} is empty")
         if (message == "check_balance"):
-            send_message_to_client(db.extract_account_balance(account_number=...))
+            send_message_to_client(db.extract_account_balance(account_number="123456789"))
 
 
 def send_message_to_client(client, message):
@@ -41,8 +41,6 @@ def client_handler(client):
         username = client.recv(2048).decode('utf-8')
         if username != '':
             active_clients.append((username, client))
-            prompt_message = "SERVER~" + f"{username} added to the chat"
-            send_messages_to_all(prompt_message)
             break
         else:
             print("Client username is empty")
@@ -67,6 +65,7 @@ def main():
     while True:
         client, address = server.accept()
         print(f"Client connected {address[0]} {address[1]}")
+        active_clients.append(client)
 
         threading.Thread(target=client_handler, args=(client, )).start()
 

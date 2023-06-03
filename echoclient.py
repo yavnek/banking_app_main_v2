@@ -5,7 +5,8 @@ HOST = "127.0.0.1"
 PORT = 6666
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-logged_in = False
+logged_in = True
+user = ""
 
 def connect():
 
@@ -49,19 +50,33 @@ def start_menu():
 
     choice = input()
 
+    match choice:
+        case "1":
+            open_an_account()
+        case "2":
+            login()
+        case "9":
+            client.close()
+            quit()
+        case _:
+            print("Bledny wybor. Sprobuj ponownie.")
+
 def open_an_account():
     name = input("Imie: ")
     surname = input("Nazwisko: ")
     pesel = input("PESEL: ")
     password = input("Haslo: ")
+
     try:
-        send_message("open_an_account")
+        send_message(f"open_an_account,{name}:{surname}:{pesel}:{password}")
     except:
         print("Wystapil blad, sprobuj ponownie")
 
 def login():
     pesel = input("Numer konta: ")
     password = input("Haslo: ")
+
+    send_message(f"login,{pesel}:{password}")
 
 def logged_in_menu():
     print("1. Zobacz balans")
@@ -94,22 +109,31 @@ def logged_in_menu():
             print("Bledny wybor. Sprobuj ponownie.")
 
 def check_balance():
-    send_message("check_balance")
+    send_message(f"check_balance,{user}")
 
 def deposit_money():
-    ...
+    amount = input("Podaj ilość do wpłaty: ")
+
+    send_message(f"deposit_money,{amount}")
 
 def withdraw_money():
-    ...
+    amount = input("Podaj ilosc do wyplaty: ")
+
+    send_message(f"withdraw_money,{amount}")
 
 def send_money():
-    ...
+    amount = input("Podaj ilosc do wyslania: ")
+    address = input("Podaj adres odbiorcy: ")
+
+    send_message(f"send_money,{amount}:{address}")
 
 def logout():
-    ...
+    send_message("logout")
+    logged_in = False
+    user = ""
 
 def show_account_details():
-    ...
+    send_message(f"show_account_details,{user}")
 
 def main():
     connect()
