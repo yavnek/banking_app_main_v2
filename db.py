@@ -1,12 +1,10 @@
-import socket
-import threading
 import sqlite3
 import random
 from sqlite3 import Error
 
 #Tworzenie połączenia bazy danych(jeżeli plik nie istnieje to zostaje stworzony) oraz tableli 
 def create_connection_client(db_file):
-    """ create a database connection to a SQLite database """
+    
     conn = None
     try:
         conn = sqlite3.connect(db_file)
@@ -218,7 +216,7 @@ def generate_random_account_number():
         print(e)
         return -1
 
-if __name__ == '__main__':
+def main():
     conn = create_connection_client(r"database.db")
     with conn:
         #przy każdym nowym wpisie klienta trzeba sprawdzić czy już jego nr konta istnieje, ogólnie jak najczęściej używac tej funkcji "check_if_value_exists_in_db"
@@ -234,5 +232,6 @@ if __name__ == '__main__':
 
     update_value_clients_table("name", 100000000000, "Cris")
     print(extract_account_balance(100000000001))
+    
     conn.close
     
