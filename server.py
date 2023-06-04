@@ -1,6 +1,5 @@
 import socket
 import threading
-from ClientModel import db
 import pw
 import json
 
@@ -9,7 +8,6 @@ PORT = 6666
 ADDRESS = (HOST, PORT)
 SIZE = 1024
 FORMAT = "utf-8"
-DISCONNECT_MSG = "9"
 
 def handle_client(conn, addr):
     print(f"[NOWE POLACZENIE] {addr}")
@@ -21,6 +19,8 @@ def handle_client(conn, addr):
         match msg['command']:
             case "CREATE_CLIENT":
                 create_client_command(msg['firstName'], msg['lastName'], msg['PESEL'], msg['password'])
+            case "LOGIN":
+                login_command(msg['accountNumber'], msg['password'])
             case "GET_ACCOUNT_BALANCE":
                 get_account_balance_command(msg['accountNumber'])
             case "DEPOSIT_MONEY":
@@ -29,7 +29,9 @@ def handle_client(conn, addr):
                 withdraw_money_command(msg['accountNumber'], msg['amount'])
             case "TRANSFER_MONEY":
                 transfer_money_command(msg['senderAccountNumber'], msg['receiverAccountNumber'], msg['amount'])
-            case DISCONNECT_MSG:
+            case "SHOW_ACCOUNT_DETAILS":
+                show_account_details_command(msg['accountNumber'])
+            case "9":
                 connected = False
 
         print(f"[{addr}] {msg}")
@@ -42,6 +44,9 @@ def handle_client(conn, addr):
 def create_client_command(firstName, lastName, PESEL, password):
     pw.create_client(firstName, lastName, PESEL, password)
 
+def login_command(accountNumber, password):
+    ...
+
 def get_account_balance_command(accountNumber):
     pw.get_account_balance(accountNumber)
 
@@ -53,6 +58,10 @@ def withdraw_money_command(accountNumber, amount):
 
 def transfer_money_command(senderAccountNumber, receiverAccountNumber, amount):
     pw.transfer_money(senderAccountNumber, receiverAccountNumber, amount)
+
+def show_account_details_command(accountNumber):
+    ...
+
 
 def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
