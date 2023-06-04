@@ -20,16 +20,15 @@ def handle_client(conn, addr):
         msg = json.loads(msg)
         match msg['command']:
             case "CREATE_CLIENT":
-                pw.create_client(msg['firstName'], msg['lastName'], msg['PESEL'], msg['password'])
+                create_client_command(msg['firstName'], msg['lastName'], msg['PESEL'], msg['password'])
             case "GET_ACCOUNT_BALANCE":
-                balance = pw.get_account_balance(msg['accountNumber'])
-
+                get_account_balance_command(msg['accountNumber'])
             case "DEPOSIT_MONEY":
-                pw.deposit_money(msg['accountNumber'], msg['amount'])
+                deposit_money_command(msg['accountNumber'], msg['amount'])
             case "WITHDRAW_MONEY":
-                pw.withdraw_money(msg['accountNumber'], msg['amount'])
+                withdraw_money_command(msg['accountNumber'], msg['amount'])
             case "TRANSFER_MONEY":
-                pw.transfer_money(msg['senderAccountNumber'], msg['receiverAccountNumber'], msg['amount'])
+                transfer_money_command(msg['senderAccountNumber'], msg['receiverAccountNumber'], msg['amount'])
             case DISCONNECT_MSG:
                 connected = False
 
@@ -39,6 +38,21 @@ def handle_client(conn, addr):
 
 
     conn.close()
+
+def create_client_command(firstName, lastName, PESEL, password):
+    pw.create_client(firstName, lastName, PESEL, password)
+
+def get_account_balance_command(accountNumber):
+    pw.get_account_balance(accountNumber)
+
+def deposit_money_command(accountNumber, amount):
+    pw.deposit_money(accountNumber, amount)
+
+def withdraw_money_command(accountNumber, amount):
+    pw.withdraw_money(accountNumber, amount)
+
+def transfer_money_command(senderAccountNumber, receiverAccountNumber, amount):
+    pw.transfer_money(senderAccountNumber, receiverAccountNumber, amount)
 
 def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
