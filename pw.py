@@ -1,6 +1,5 @@
 from ClientModel import db, Client
 import random
-from peewee import *
 
 db.connect()
 
@@ -39,8 +38,6 @@ def check_if_value_exists(column, value):
         return bool(client)
     except:
         return False
-
-print(get_account_balance(2))
 
 
 
