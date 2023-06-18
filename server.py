@@ -9,11 +9,15 @@ ADDRESS = (HOST, PORT)
 SIZE = 1024
 FORMAT = "utf-8"
 
-def handle_client(conn, addr):
-    print(f"[NOWE POLACZENIE] {addr}")
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(ADDRESS)
 
-    connected = True
-    while connected:
+
+def handle_client(conn, addr):
+    print(f"\n[NOWE POLACZENIE] {addr}")
+
+    CONNECTED = True
+    while CONNECTED:
         msg = conn.recv(SIZE).decode(FORMAT)
         msg = json.loads(msg)
         match msg['command']:
@@ -31,49 +35,103 @@ def handle_client(conn, addr):
                 transfer_money_command(msg['senderAccountNumber'], msg['receiverAccountNumber'], msg['amount'])
             case "SHOW_ACCOUNT_DETAILS":
                 show_account_details_command(msg['accountNumber'])
-            case "9":
-                connected = False
+            case "EXIT":
+                CONNECTED = False
+                conn.close()
 
         print(f"[{addr}] {msg}")
 
-        #conn.send(msg.encode(FORMAT))
-
-
     conn.close()
+
 
 def create_client_command(firstName, lastName, PESEL, password):
     pw.create_client(firstName, lastName, PESEL, password)
 
+
 def login_command(accountNumber, password):
-    ...
+    try:
+        client = pw.account_details(accountNumber)
+        if (client.password == password):
+            send_msg_to_client("CLIENT_LOGIN")
+        else:
+            send_msg_to_client("Zle haslo. Sprobuj ponownie")
+    except:
+        send_msg_to_client("Brak takiego konta. Spróbuj ponownie")
+
 
 def get_account_balance_command(accountNumber):
-    pw.get_account_balance(accountNumber)
+    balance = pw.get_account_balance(accountNumber)
+    msg = f"\nBalans konta {accountNumber} to: {balance}"
+    send_msg_to_client(msg)
+
 
 def deposit_money_command(accountNumber, amount):
-    pw.deposit_money(accountNumber, amount)
+    if (amount < 0):
+        msg = "Wplata nie moze byc mniejsza od zera"
+    else:
+        pw.deposit_money(accountNumber, amount)
+        msg = f"Wplacono: {amount}"
+
+    send_msg_to_client(msg)
+
 
 def withdraw_money_command(accountNumber, amount):
-    pw.withdraw_money(accountNumber, amount)
+    balance = pw.get_account_balance(accountNumber)
+
+    if (amount > balance):
+        msg = "Masz za malo pieniedzy"
+    elif (amount < 0):
+        msg = "Nie mozna wyplacic kwoty mniejszej od zera"
+    else:
+        pw.withdraw_money(accountNumber, amount)
+        msg = f"Wyplacono: {amount}"
+
+    send_msg_to_client(msg)
+
 
 def transfer_money_command(senderAccountNumber, receiverAccountNumber, amount):
-    pw.transfer_money(senderAccountNumber, receiverAccountNumber, amount)
+    senderBalance = pw.get_account_balance(senderAccountNumber)
+
+    if (amount > senderBalance):
+        msg = "Masz za malo pieniedzy"
+    else:
+        pw.transfer_money(senderAccountNumber, receiverAccountNumber, amount)
+        msg = f"Wyslano {amount} do {receiverAccountNumber}"
+
+    send_msg_to_client(msg)
+
 
 def show_account_details_command(accountNumber):
-    ...
+    client = pw.account_details(accountNumber)
+
+    msg = \
+        f"""
+    Numer konta: {client.accountNumber}
+    Imie: {client.firstName}
+    Nazwisko: {client.lastName}
+    PESEL: {client.PESEL}
+    Haslo: {client.password}
+    Balans: {client.balance}
+    """
+
+    send_msg_to_client(msg)
+
+
+def send_msg_to_client(message):
+    conn.send(str(message).encode(FORMAT))
 
 
 def main():
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(ADDRESS)
+    pw.connect()
     server.listen()
     print(f"[NASLUCHIWANIE] Server nasluchuje na {HOST}:{PORT}")
-
     while True:
+        global conn
         conn, addr = server.accept()
         thread = threading.Thread(target=handle_client, args=(conn, addr))
         thread.start()
         print(f"\n[AKTYWNE POLACZENIA] {threading.active_count() - 1}")
+
 
 if __name__ == "__main__":
     main()

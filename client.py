@@ -6,9 +6,9 @@ PORT = 6666
 ADDRESS = (HOST, PORT)
 SIZE = 1024
 FORMAT = "utf-8"
-DISCONNECT_MSG = "9"
-LOGGED_IN = True
-connected = True
+LOGGED_IN = False
+LOGGED_CLIENT_NUMBER = ""
+CONNECTED = False
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDRESS)
@@ -17,32 +17,14 @@ client.connect(ADDRESS)
 def main():
     print(f"Polaczono z serverem {HOST}:{PORT}")
 
+    global CONNECTED
+    CONNECTED = True
 
-    while connected:
-
+    while CONNECTED:
         if LOGGED_IN:
             logged_in_menu()
         else:
             start_menu()
-
-
-def start_menu():
-    print("1. Otworz konto")
-    print("2. Zaloguj sie")
-
-    print("\n9. Wyjscie")
-
-    selection = input("> ")
-
-    match selection:
-        case "1":
-            create_client()
-        case "2":
-            ...
-        case "9":
-            connected = False
-        case _:
-            print("Nieprawidlowy wybor. Sprobuj ponownie")
 
 
 def logged_in_menu():
@@ -58,21 +40,47 @@ def logged_in_menu():
 
     match selection:
         case "1":
-            check_balance(21567)
+            check_balance(LOGGED_CLIENT_NUMBER)
         case "2":
-            ...
+            deposit_money(LOGGED_CLIENT_NUMBER)
         case "3":
-            ...
+            withdraw_money(LOGGED_CLIENT_NUMBER)
         case "4":
-            ...
+            send_money(LOGGED_CLIENT_NUMBER)
         case "5":
-            ...
+            show_account_details(LOGGED_CLIENT_NUMBER)
         case "6":
-            ...
+            logout()
         case "9":
-            ...
+            global CONNECTED
+            CONNECTED = False
+            exit()
+        case _:
+            print("Nieprawidlowy wybor. Sprobuj ponownie\n")
+    listen_for_messages_from_server(client)
+
+
+def start_menu():
+    print("1. Otworz konto")
+    print("2. Zaloguj sie")
+
+    print("\n9. Wyjscie")
+
+    selection = input("> ")
+
+    match selection:
+        case "1":
+            create_client()
+        case "2":
+            login()
+        case "9":
+            global CONNECTED
+            CONNECTED = False
+            exit()
         case _:
             print("Nieprawidlowy wybor. Sprobuj ponownie")
+    listen_for_messages_from_server(client)
+
 
 def create_client():
     firstName = input("Imie: ").strip()
@@ -90,9 +98,11 @@ def create_client():
 
     client.send(json.dumps(msg).encode(FORMAT))
 
+
 def login():
-    accountNumber = input("Podaj numer konta: ")
-    password = input("Podaj haslo: ")
+    global accountNumber
+    accountNumber = input("Podaj numer konta: ").strip()
+    password = input("Podaj haslo: ").strip()
 
     msg = {
         "command": "LOGIN",
@@ -101,6 +111,8 @@ def login():
     }
 
     client.send(json.dumps(msg).encode(FORMAT))
+
+
 def check_balance(accountNumber):
     msg = {
         "command": "GET_ACCOUNT_BALANCE",
@@ -109,8 +121,9 @@ def check_balance(accountNumber):
 
     client.send(json.dumps(msg).encode(FORMAT))
 
+
 def deposit_money(accountNumber):
-    amount = int(input("Podaj ilośc: ")).strip()
+    amount = int(input("Podaj ilośc: ").strip())
 
     msg = {
         "command": "DEPOSIT_MONEY",
@@ -122,7 +135,7 @@ def deposit_money(accountNumber):
 
 
 def withdraw_money(accountNumber):
-    amount = int(input("Podaj ilośc: ")).strip()
+    amount = int(input("Podaj ilośc: ").strip())
 
     msg = {
         "command": "WITHDRAW_MONEY",
@@ -132,9 +145,10 @@ def withdraw_money(accountNumber):
 
     client.send(json.dumps(msg).encode(FORMAT))
 
+
 def send_money(senderAccountNumber):
     receiverAccountNumber = input("Podaj adres odbiorcy: ").strip()
-    amount = int(input("Podaj ilosc: "))
+    amount = int(input("Podaj ilosc: ").strip())
 
     msg = {
         "command": "TRANSFER_MONEY",
@@ -145,6 +159,7 @@ def send_money(senderAccountNumber):
 
     client.send(json.dumps(msg).encode(FORMAT))
 
+
 def show_account_details(accountNumber):
     msg = {
         "command": "SHOW_ACCOUNT_DETAILS",
@@ -152,6 +167,48 @@ def show_account_details(accountNumber):
     }
 
     client.send(json.dumps(msg).encode(FORMAT))
+
+
+def logout():
+    msg = {
+        "command": "LOGOUT"
+    }
+
+    global LOGGED_IN
+    global LOGGED_CLIENT_NUMBER
+
+    LOGGED_IN = True
+    LOGGED_CLIENT_NUMBER = ""
+
+    client.send(json.dumps(msg).encode(FORMAT))
+
+    print("Wylogowano")
+
+
+def exit():
+    msg = {
+        "command": "EXIT"
+    }
+
+    client.send(json.dumps(msg).encode(FORMAT))
+
+
+def logged_in():
+    global LOGGED_IN
+    global LOGGED_CLIENT_NUMBER
+
+    LOGGED_IN = True
+    LOGGED_CLIENT_NUMBER = accountNumber
+    print(f"Zalogowano jako {LOGGED_CLIENT_NUMBER}")
+
+
+def listen_for_messages_from_server(client):
+    message = client.recv(SIZE).decode(FORMAT)
+    if (message == 'CLIENT_LOGIN'):
+        logged_in()
+    else:
+        print(message)
+
 
 if __name__ == "__main__":
     main()
