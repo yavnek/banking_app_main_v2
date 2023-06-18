@@ -2,6 +2,7 @@ import socket
 import threading
 import pw
 import json
+import random
 
 HOST = '127.0.0.1'
 PORT = 6666
@@ -11,6 +12,9 @@ FORMAT = "utf-8"
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDRESS)
+
+
+
 
 
 def handle_client(conn, addr):
@@ -35,6 +39,8 @@ def handle_client(conn, addr):
                 transfer_money_command(msg['senderAccountNumber'], msg['receiverAccountNumber'], msg['amount'])
             case "SHOW_ACCOUNT_DETAILS":
                 show_account_details_command(msg['accountNumber'])
+            case "LOGOUT":
+                logout_command(msg['accountNumber'])
             case "EXIT":
                 CONNECTED = False
                 conn.close()
@@ -45,7 +51,15 @@ def handle_client(conn, addr):
 
 
 def create_client_command(firstName, lastName, PESEL, password):
-    pw.create_client(firstName, lastName, PESEL, password)
+    while True:
+        accountNumber = random.randint(1, 50000)
+        accountNumberExists = pw.check_if_value_exists("accountNumber", accountNumber)
+        if (accountNumberExists == False):
+            break
+
+    pw.create_client(accountNumber, firstName, lastName, PESEL, password)
+
+    send_msg_to_client(f"Stworzono nowe konto. Twoj numer konta to {accountNumber}")
 
 
 def login_command(accountNumber, password):
@@ -104,17 +118,17 @@ def transfer_money_command(senderAccountNumber, receiverAccountNumber, amount):
 def show_account_details_command(accountNumber):
     client = pw.account_details(accountNumber)
 
-    msg = \
-        f"""
-    Numer konta: {client.accountNumber}
-    Imie: {client.firstName}
-    Nazwisko: {client.lastName}
-    PESEL: {client.PESEL}
-    Haslo: {client.password}
-    Balans: {client.balance}
-    """
+    msg = f"Numer konta: {client.accountNumber}\n" \
+          f"Imie: {client.firstName}\n" \
+          f"Nazwisko: {client.lastName}\n" \
+          f"PESEL: {client.PESEL}\n" \
+          f"Haslo: {client.password}\n" \
+          f"Balans: {client.balance}"
 
     send_msg_to_client(msg)
+
+def logout_command(accountNumber):
+    send_msg_to_client(f"Klient {accountNumber} wylogowany")
 
 
 def send_msg_to_client(message):

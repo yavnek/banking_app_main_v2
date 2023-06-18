@@ -50,7 +50,7 @@ def logged_in_menu():
         case "5":
             show_account_details(LOGGED_CLIENT_NUMBER)
         case "6":
-            logout()
+            logout(LOGGED_CLIENT_NUMBER)
         case "9":
             global CONNECTED
             CONNECTED = False
@@ -169,20 +169,19 @@ def show_account_details(accountNumber):
     client.send(json.dumps(msg).encode(FORMAT))
 
 
-def logout():
+def logout(accountNumber):
     msg = {
-        "command": "LOGOUT"
+        "command": "LOGOUT",
+        "accountNumber": accountNumber
     }
+
+    client.send(json.dumps(msg).encode(FORMAT))
 
     global LOGGED_IN
     global LOGGED_CLIENT_NUMBER
 
-    LOGGED_IN = True
+    LOGGED_IN = False
     LOGGED_CLIENT_NUMBER = ""
-
-    client.send(json.dumps(msg).encode(FORMAT))
-
-    print("Wylogowano")
 
 
 def exit():

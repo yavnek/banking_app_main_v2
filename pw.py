@@ -1,5 +1,4 @@
 from ClientModel import db, Client
-import random
 
 
 def connect():
@@ -8,9 +7,7 @@ def connect():
     db.create_tables([Client])
 
 
-def create_client(firstName, lastName, PESEL, password):
-    accountNumber = random.randint(1, 50000)
-
+def create_client(accountNumber, firstName, lastName, PESEL, password):
     try:
         client = Client.create(accountNumber=accountNumber,
                                firstName=firstName,
@@ -50,10 +47,10 @@ def account_details(accountNumber):
     client = Client.select().where(Client.accountNumber == accountNumber).get()
     return client
 
-
-# def check_if_value_exists(column, value):
-#     try:
-#         client = Client.get(column == value)
-#         return bool(client)
-#     except Exception as ex:
-#         return False
+def check_if_value_exists(column, value):
+    try:
+        data = {column:value}
+        client = Client.get(**data)
+        return bool(client)
+    except:
+        return False
