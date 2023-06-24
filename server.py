@@ -13,10 +13,6 @@ FORMAT = "utf-8"
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDRESS)
 
-
-
-
-
 def handle_client(conn, addr):
     print(f"\n[NOWE POLACZENIE] {addr}")
 
@@ -126,6 +122,7 @@ def show_account_details_command(accountNumber):
           f"Balans: {client.balance}"
 
     send_msg_to_client(msg)
+
 
 def logout_command(accountNumber):
     send_msg_to_client(f"Klient {accountNumber} wylogowany")

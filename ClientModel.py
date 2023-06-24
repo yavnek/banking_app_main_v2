@@ -2,7 +2,6 @@ from peewee import *
 
 db = SqliteDatabase('clients.db')
 
-
 class Client(Model):
     accountNumber = IntegerField(primary_key=True)
     firstName = CharField()

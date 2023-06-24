@@ -1,6 +1,4 @@
 from ClientModel import db, Client
-
-
 def connect():
     db.connect()
 
@@ -47,9 +45,10 @@ def account_details(accountNumber):
     client = Client.select().where(Client.accountNumber == accountNumber).get()
     return client
 
+
 def check_if_value_exists(column, value):
     try:
-        data = {column:value}
+        data = {column: value}
         client = Client.get(**data)
         return bool(client)
     except:
